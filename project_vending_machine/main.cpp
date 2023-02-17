@@ -1,116 +1,142 @@
 #include <iostream>
+#include <string>
+/*
+
+    currently working on the status functionality.
+    print till is working correctly, but it has to be combined with a print function of the machine inventory (cups and cans)
+
+
+
+    -- Service Mode
+    * help
+    * status
+    * add cans / cups
+    * add / remove money
+    * exit
+    * lock with password
+
+    -- Normal Mode
+    * help
+    * enter coin
+    * enter bill
+    * pick can
+    * exit
+    * unlock with password
+
+*/
 
 using namespace std;
 
-class VendingMachineTill {
-    private:
-        float amountDeposited;
-        int oneDollarBillCount;
-        int fiveDollarBillCount;
-        int nickelCount;
-        int dimeCount;
-        int quarterCount;
-    public:
-        // Getters
-        float getAmountDeposited() {
-            return amountDeposited;
-        }
-        int getOneDollarBillCount() {
-            return oneDollarBillCount;
-        }
-        int getFiveDollarBillCount() {
-            return fiveDollarBillCount;
-        }
-        int getNickelCount() {
-            return nickelCount;
-        }
-        int getDimeCount() {
-            return dimeCount;
-        }
-        int getQuarterCount() {
-            return quarterCount;
-        }
-        // Setters
-        void SetAmountDeposited(float amount) {
-            this->amountDeposited = amount;
-        };
-        void setOneDollarBillCount(int count) {
-            this->oneDollarBillCount = count;
-        }
-        void setFiveDollarBillCount(int count) {
-            this->fiveDollarBillCount = count;
-        }
-        void setNickelCount(int count) {
-            this->nickelCount = count;
-        }
-        void setDimeCount(int count) {
-            this->dimeCount = count;
-        }
-        void setQuarterCount(int count) { 
-            this->quarterCount = count;
-        }
+class Currency {
+public:
+    string name;
+    int count;
+    float value;
+
+//public:
+    //void setCount{}
+    Currency() {
+        this->name = "";
+        this->count = 0;
+        this->value = 0;
+    }
+    
+    void setValues(string pName, int pCount, float pValue) {
+        this->name = pName;
+        this->count = pCount;
+        this->value = pValue;
+    }
+    
 };
 
-class VendingMachineInventory {
-    private:
-        int cokeCount;
-        int pepsiCount;
-        int RCCount;
-        int joltCount;
-        int faygoCount;
-        int cupCount;
-    public:
-        // Getters
-        int getCokeCount() {
-            return cokeCount;
+class VendingMachineTill {
+private:
+    float amountDeposited = 0;
+    static const int TILL_SIZE = 5;
+    
+    Currency fiveDollar;
+    Currency dollar;
+    Currency quarter;
+    Currency dime;
+    Currency nickel;
+    Currency* tender[TILL_SIZE] = {&fiveDollar, &dollar, &quarter, &dime, &nickel};
+public:
+
+    VendingMachineTill() {
+        fiveDollar.setValues("Five Dollar Bills", 2, 5.0);
+        dollar.setValues("One Dollar Bills", 2, 1.0);
+        quarter.setValues("Quarters", 1, 0.25);
+        dime.setValues("Dimes", 0, 0.10);
+        nickel.setValues("Nickels", 0, 0.05);
+        this->calculateAmountDeposited();
+    }
+
+    void calculateAmountDeposited() {
+        float count = 0;
+        for (int i = 0; i < TILL_SIZE; i++) {
+            count += tender[i]->count * tender[i]->value;
         }
-        int getPepsiCount() {
-            return pepsiCount;
+
+        this->amountDeposited = count;
+    }
+
+    float getAmountDeposited() {
+        return this->amountDeposited;
+    }
+
+    void printTill() {
+        this->calculateAmountDeposited();
+        cout << "Amount Deposited = " << amountDeposited << endl;
+        for (int i = 0; i < 5; i++) {
+            cout << "total " << tender[i]->name << " = " << tender[i]->count << endl;
         }
-        int getRCCount() {
-            return RCCount;
-        }
-        int getJoltCount() {
-            return joltCount;
-        }
-        int getFaygoCount() {
-            return faygoCount;
-        }
-        int getCupCount() {
-            return cupCount;
-        }
-        // Setters
-        void setCokeCount(int count) {
-            this->cokeCount = count;
-        }
-        void setPepsiCount(int count) {
-            this->pepsiCount = count;
-        }
-        void setRCCount(int count) {
-            this->RCCount = count;
-        }
-        void setJoltCount(int count) {
-            this->joltCount = count;
-        }
-        void setFaygoCount(int count) {
-            this->faygoCount = count;
-        }
-        void setCupCount(int count) {
-            this->cupCount = count;
-        }
+    }
+
+    
 };
 
 class VendingMachine {
-    private:
-        bool workingMode = 0; // 0 is service mode, 1 is normal mode
-        const float DRINK_COST = .75;
-        
+private:
+    bool workingMode = 0; // 0 is service mode, 1 is normal mode  
+
+public:        
+    const float DRINK_COST = .75;
+    
+    int cokeCount;
+    int pepsiCount;
+    int RCCount;
+    int joltCount;
+    int faygoCount;
+    int cupCount;
+    int* machineCount[6] = {&cokeCount, &pepsiCount, &RCCount, &joltCount, &faygoCount, &cupCount}; 
+    
+    VendingMachineTill till;
+
+    bool runningStatus = true;
+    string password = "";
+    
+    void setWorkingMode(bool workMode) {
+        this->workingMode = workMode;
+    }
+    bool getWorkingMode() {
+        return this->workingMode;
+    }
+    
+    void exit() {
+        runningStatus = false;
+    }
+    
+    // service mode
+    void status() { // this command prints out the ammount deposited, the machine's till, and the number of pop/cups
+
+    }
 };
 
 int main() {
 
+    VendingMachineTill myTill;
 
-
+    myTill.printTill();
 
     system("pause");
     return 0;
