@@ -8,15 +8,15 @@
 
 
     -- Service Mode
-    * help
-    * status
+    * help - list commands
+    * status - print the till, print number of cans and cups
     * add cans / cups
     * add / remove money
     * exit
     * lock with password
 
     -- Normal Mode
-    * help
+    * help - list commands
     * enter coin
     * enter bill
     * pick can
@@ -47,6 +47,25 @@ public:
         this->value = pValue;
     }
     
+};
+
+class Item {
+public:
+    string name;
+    int count;
+    float price;
+
+    Item() {
+        this->name = "";
+        this->count = 0;
+        this-> price = 0;
+    }
+
+    void setValues(string pName, int pCount, float pPrice) {
+        this->name = pName;
+        this->count = pCount;
+        this->price = pPrice;
+    }
 };
 
 class VendingMachineTill {
@@ -95,6 +114,36 @@ public:
     
 };
 
+class VendingMachineInventory {
+public:
+
+    const float DRINK_COST = .75;
+    Item coke;
+    Item pepsi;
+    Item RC;
+    Item jolt;
+    Item faygo;
+    Item cup;
+
+    Item* inventory[6] = {&coke, &pepsi, &RC, &jolt, &faygo, &cup}; 
+
+    VendingMachineInventory() {
+        coke.setValues("Coke", 0, DRINK_COST);
+        pepsi.setValues("Pepsi", 0, DRINK_COST);
+        RC.setValues("RC", 0, DRINK_COST);
+        jolt.setValues("Jolt", 0, DRINK_COST);
+        faygo.setValues("Faygo", 0, DRINK_COST);
+        
+        // cups are free
+        cup.setValues("Cups", 0, 0);
+    }
+    void printInventory() {
+        for(int i = 0; i < inventory.size(); i++){
+            
+        }
+    }
+};
+
 class VendingMachine {
 private:
     bool workingMode = 0; // 0 is service mode, 1 is normal mode  
@@ -102,19 +151,16 @@ private:
 public:        
     const float DRINK_COST = .75;
     
-    int cokeCount;
-    int pepsiCount;
-    int RCCount;
-    int joltCount;
-    int faygoCount;
-    int cupCount;
-    int* machineCount[6] = {&cokeCount, &pepsiCount, &RCCount, &joltCount, &faygoCount, &cupCount}; 
-    
-    VendingMachineTill till;
-
     bool runningStatus = true;
     string password = "";
-    
+
+
+    VendingMachineInventory inventory;    
+    VendingMachineTill till;
+
+
+
+
     void setWorkingMode(bool workMode) {
         this->workingMode = workMode;
     }
