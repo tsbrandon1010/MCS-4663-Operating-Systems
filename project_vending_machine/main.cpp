@@ -272,7 +272,7 @@ public:
 
     void remove(string itemType, int denomination, int quantity) {
         if (quantity < 0) {
-            cout << "Cannot add a number less than zero" << endl;
+            cout << "Cannot remove a number less than zero" << endl;
             return;
         }
         
@@ -384,41 +384,101 @@ public:
         return -1;
     }
 
-    void add(string itemType, string denomination, int quantity) {
+    // only works for the cola
+    void add(string itemType, string brand, int quantity) {
         if (quantity < 0) {
             cout << "Cannot add a number less than zero" << endl;
             return;
         }
         
-
-
-        
+        itemType = stringLower(itemType);
+        if (itemType == "cola" || itemType == "colas") {
+            int itemIndex = findItem(brand);
+            if (itemIndex == -1 || itemIndex == 5) {
+                cout << "An invalid brand was entered" << endl;
+                return;
+            }
+            
+            this->inventory[itemIndex]->count += quantity;
+            printCount(itemIndex);
+            return;
+        }
+        else {
+            cout << "An invalid item type was entered" << endl;
+            return;
+        }
     }
 
-    void remove(string itemType, string denomination, int quantity) {
+    // only works for the cups
+    void add(string itemType, int quantity) {
+        if (quantity < 0) {
+            cout << "Cannot add a number less than zero" << endl;
+            return;
+        }
+        
+        itemType = stringLower(itemType);
+        if (itemType == "cups" || itemType == "cup") {
+            this->inventory[5]->count += quantity;
+            printCount(5);
+            return;
+        }
+        if (itemType == "cola") {
+            cout << "You need to enter a brand" << endl;
+            return;
+        }
+        else {
+            cout << "Invalid item type entered" << endl;
+            return;
+        }
+    }
+
+
+    // only works for the cola
+    void remove(string itemType, string brand, int quantity) {
         if (quantity < 0) {
             cout << "Cannot remove a number less than zero" << endl;
             return;
         }
         
         itemType = stringLower(itemType);
-        if (itemType == "coins" || itemType == "coin" || itemType == "bills" || itemType == "bill") {
-            int itemIndex = findItem(denomination);
+        if (itemType == "cola" || itemType == "colas") {
+            int itemIndex = findItem(brand);
+            if (itemIndex == -1 || itemIndex == 5) {
+                cout << "An invalid brand was entered" << endl;
+                return;
+            }
             
-            if (itemIndex == -1) {
-                cout << "Invalid denomination was entered" << endl;
-                return;
-            }
-            else {
-                
-                if (this->tender[itemIndex]->count <= quantity) { this->tender[itemIndex]->count = 0; } 
-                else { this->tender[itemIndex]->count -= quantity; }
-                printCount(itemIndex);
-                return;
-            }
+            this->inventory[itemIndex]->count += quantity;
+            printCount(itemIndex);
+            return;
         }
         else {
-            cout << "The type [Coins|Bills] was not correct" << endl;
+            cout << "An invalid item type was entered" << endl;
+            return;
+        }
+    }
+
+    // only works for the cups
+    void remove(string itemType, int quantity) {
+        if (quantity < 0) {
+            cout << "Cannot remove a number less than zero" << endl;
+            return;
+        }
+        
+        itemType = stringLower(itemType);
+        if (itemType == "cups" || itemType == "cup") {
+            
+            if (this->inventory[5]->count <= quantity) { this->inventory[5]->count = 0; }
+            else { this->inventory[5]->count -= quantity; }
+            printCount(5);
+            return;
+        }
+        if (itemType == "cola") {
+            cout << "You need to enter a brand" << endl;
+            return;
+        }
+        else {
+            cout << "Invalid item type entered" << endl;
             return;
         }
     }
@@ -461,9 +521,12 @@ public:
 
 int main() {
 
-    VendingMachineTill till;
+    VendingMachineInventory inv;
 
-    till.remove("bills", 5, 10);
+
+    inv.add("Cup", 10);
+    inv.remove("CUP", 1);
+    inv.remove("Cups", 23);
 
     system("pause");
     return 0;
