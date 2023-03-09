@@ -11,23 +11,28 @@
     
     TO DO:
     
-    * help - list commands
-    * add cans / cups
-    * add / remove money
-    * exit
-    * lock with password
-
+    ---- make the VendingMachine class invoke the respective functions ---- 
+    
     DONE:
     
     * status - print the till, print number of cans and cups
+    * add cans / cups
+    * add / remove money
+    * lock with password
+    * exit
+    * help - list commands
 
     -- Normal Mode
-    * help - list commands
+    
     * enter coin
     * enter bill
     * pick can
+    DONE:
+   
+    * help - list commands
     * exit
     * unlock with password
+
 
 */
 
@@ -123,6 +128,21 @@ public:
 
     float getAmountDeposited() {
         return this->amountDeposited;
+    }
+
+    int dispenseChange(int changeNeeded) { // subtracts the proper denominations to return the change to the customer
+        // subtract the largest possible denomination first
+
+        float largestDenomination;
+
+        largestDenomination = changeNeeded / 5;
+
+        changeNeeded;
+    }
+
+    void updateTill(int denominationIndex, int quantity) {
+        this->tender[denominationIndex]->count += quantity;
+        this->calculateAmountDeposited();
     }
 
     void printTill() {
@@ -368,7 +388,7 @@ public:
         << ": "<< this->inventory[itemIndex]->count << endl; 
     }
 
-    int findItem(string pName) {
+    int findItem(string pName) { // no need to process the string (upper or lower case) before passing it
         if (stringUpper(pName) == "RC") {
             return 2;
         }
@@ -487,46 +507,180 @@ public:
 
 class VendingMachine {
 private:
-    bool workingMode = 0; // 0 is service mode, 1 is normal mode  
-
-public:        
     const float DRINK_COST = .75;
     
+    bool serviceMode = true; // true = it is in service mode
     bool runningStatus = true;
-    string password = "";
-
-
+    string password = "amongus"; // hard-coded password
+    float currentBalance = 0;
+public:        
+    
+    
     VendingMachineInventory inventory;    
     VendingMachineTill till;
 
-    void setWorkingMode(bool workMode) {
-        this->workingMode = workMode;
+    void setServiceMode(bool isServiceMode) {
+        this->serviceMode = isServiceMode;
     }
-    bool getWorkingMode() {
-        return this->workingMode;
+    bool getServiceMode() {
+        return this->serviceMode;
     }
     
     void exit() {
         runningStatus = false;
     }
     
+    void help() {
+        if (this->serviceMode == true) {
+            cout << endl << "Commands in Service Mode are:" << endl <<
+            "Status" << endl <<
+            "Add|Remove [Cola|Cups] brand <quantity>" << endl <<
+            "Add|Remove [Coins|Bills] <denomination> <quantity>" << endl <<
+            "Exit" << endl <<
+            "Lock [password]" << endl << endl;
+        }
+        if (this->serviceMode == false) {
+            cout << endl << "Commands in Normal Mode are:" << endl <<
+            "Coin <value> where value is 5 10 25 nickel dime quarter" << endl <<
+            "Bill <value> where value is 1 5 " << endl <<
+            "Cola <value> where value is coke pepsi rc jolt faygo" << endl <<
+            "Exit" << endl <<
+            "Unlock [password]" << endl << endl;
+        }
+    }    
+
     // service mode
     void status() { // this command prints out the ammount deposited, the machine's till, and the number of pop/cups
         this->till.printTill();
         this->inventory.printInventory();
     }
 
-    void add() {} // the vending machine has to call the correct corresponding add function (from the till or the inventory)
+    void lock(string pPassword) {
+        if (pPassword == this->password) {
+            this->serviceMode = false;
+        }
+        else {
+            cout << "Incorrect password was entered" << endl;
+        }
+    }
+
+    void add() { // the vending machine has to call the correct corresponding add function (from the till or the inventory)
+        if (this->serviceMode != true) {
+            cout << "You can only access this command from the service mode!" << endl;
+            return;
+        }
+    } 
+
+    // normal mode
+    void coin(int value) {
+        if (value == 5) {
+            this->currentBalance += 0.05;
+            this->till.updateTill(4, 1);
+        }
+        if (value == 10) {
+            this->currentBalance += 0.10;
+            this->till.updateTill(3, 1);
+        }
+        if (value == 25) {
+            this->currentBalance += 0.25;
+            this->till.updateTill(2, 1);
+        }
+        else {
+            cout << "An invalid denomination entered" << endl;
+        }
+    }
+    
+    void coin(string value) {
+        value = stringLower(value);
+        if (value == "nickel" || value == "nickels") {
+            this->currentBalance += 0.05;
+            this->till.updateTill(4, 1);
+        }
+        if (value == "dime" || value == "dimes") {
+            this->currentBalance += 0.10;
+            this->till.updateTill(3, 1);
+        }
+        if (value == "quarter" || value == "quarters") {
+            this->currentBalance += 0.25;
+            this->till.updateTill(2, 1);
+        }
+        else {
+            cout << "An invalid denomination entered" << endl;
+        }
+    }
+
+    void bill(int value) {
+        if (value == 1) {
+            this->currentBalance += 1;
+            this->till.updateTill(1, 1);
+        }
+        if (value == 5) {
+            this->currentBalance += 5;
+            this->till.updateTill(0, 1);
+        }
+        else {
+            cout << "An invalid denomination entered" << endl;
+        }
+    }
+
+    void cola(string value) { // where value is the brand of cola
+        // * we have to check to make sure we have enough cans and cups before dispensing 
+        // * have to make sure that there is enough money to dispense a can (if not we prompt the user to enter more)
+        // * when the item is dispensed we have to deduct the item from the inventory
+        // if there is leftover money it should be returned to the user
+        int itemIndex = this->inventory.findItem(value);
+        value = stringLower(value);
+
+        if (itemIndex == -1 || value == "cups" || value == "cup") { // checking if a proper brand name was entered
+            cout << "An invalid brand was entered" << endl;
+            return;
+        }
+        if (this->inventory.inventory[itemIndex]->count == 0) { // checking if the desired brand is in stock
+            cout << "This item is out of stock!" << endl;
+            return;
+        }
+        if (this->inventory.inventory[5]->count == 0) { // the cups are at index 5
+            cout << "We are out of cups. We are unable to fulfill your order" << endl;
+            // need to give the customer back their money
+            return;
+        } 
+        if (this->currentBalance < this->DRINK_COST) { // checking to see if the customer has entered enough money
+            cout << "Insufficient funds" << endl << "Current balance: " << currentBalance << endl;
+            return;
+        }
+
+
+        this->inventory.inventory[itemIndex] -= 1; // remove the desired brand
+        this->inventory.inventory[5] -= 1; // remove a cup
+        this->currentBalance -= this->DRINK_COST;
+        cout << this->inventory.inventory[itemIndex]->name << " dispensed!" << endl << "Dispensing change..." << endl;
+
+        // need a function to dispense change
+
+    }
+
+    void unlock(string pPassword) {
+        if (pPassword == this->password) {
+            this->serviceMode = true;
+        }
+        else {
+            cout << "Incorrect password was entered" << endl;
+        }    
+    }
+
 };
 
 int main() {
 
-    VendingMachineInventory inv;
+    VendingMachine ven;
 
+    ven.help();
+    
+    ven.setServiceMode(false);
+    
+    ven.help();
 
-    inv.add("Cup", 10);
-    inv.remove("CUP", 1);
-    inv.remove("Cups", 23);
+    
 
     system("pause");
     return 0;
