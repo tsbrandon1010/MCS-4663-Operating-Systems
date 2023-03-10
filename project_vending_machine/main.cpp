@@ -110,10 +110,10 @@ public:
 
     VendingMachineTill() {
         fiveDollar.setValues("Five", "Five Dollar Bills", 10, 500);
-        dollar.setValues("One", "One Dollar Bills", 0, 100);
-        quarter.setValues("Quarter", "Quarters", 0, 25);
-        dime.setValues("Dime", "Dimes", 1, 10);
-        nickel.setValues("Nickel", "Nickels", 2, 5);
+        dollar.setValues("One", "One Dollar Bills", 10, 100);
+        quarter.setValues("Quarter", "Quarters", 10, 25);
+        dime.setValues("Dime", "Dimes", 10, 10);
+        nickel.setValues("Nickel", "Nickels", 10, 5);
         this->calculateAmountDeposited();
     }
 
@@ -482,28 +482,21 @@ public:
     }
 
     // only works for the cola
-    void add(string itemType, string brand, int quantity) {
+    void add(string brand, int quantity) {
         if (quantity < 0) {
             cout << "Cannot add a number less than zero" << endl;
             return;
         }
         
-        itemType = stringLower(itemType);
-        if (itemType == "cola" || itemType == "colas") {
-            int itemIndex = findItem(brand);
-            if (itemIndex == -1 || itemIndex == 5) {
-                cout << "An invalid brand was entered" << endl;
-                return;
-            }
-            
-            this->inventory[itemIndex]->count += quantity;
-            printCount(itemIndex);
+        int itemIndex = findItem(brand);
+        if (itemIndex == -1 || itemIndex == 5) {
+            cout << "An invalid brand was entered" << endl;
             return;
         }
-        else {
-            cout << "An invalid item type was entered" << endl;
-            return;
-        }
+        
+        this->inventory[itemIndex]->count += quantity;
+        printCount(itemIndex);
+        return;
     }
 
     // only works for the cups
@@ -521,28 +514,21 @@ public:
 
 
     // only works for the cola
-    void remove(string itemType, string brand, int quantity) {
+    void remove(string brand, int quantity) {
         if (quantity < 0) {
             cout << "Cannot remove a number less than zero" << endl;
             return;
         }
+
+        int itemIndex = findItem(brand);
+        if (itemIndex == -1 || itemIndex == 5) {
+            cout << "An invalid brand was entered" << endl;
+            return;
+        }
         
-        itemType = stringLower(itemType);
-        if (itemType == "cola" || itemType == "colas") {
-            int itemIndex = findItem(brand);
-            if (itemIndex == -1 || itemIndex == 5) {
-                cout << "An invalid brand was entered" << endl;
-                return;
-            }
-            
-            this->inventory[itemIndex]->count += quantity;
-            printCount(itemIndex);
-            return;
-        }
-        else {
-            cout << "An invalid item type was entered" << endl;
-            return;
-        }
+        this->inventory[itemIndex]->count += quantity;
+        printCount(itemIndex);
+        return;
     }
 
     // only works for the cups
@@ -623,39 +609,176 @@ public:
             return;
         }
 
+        const int MAX_ARGS = 3;
         // Add|Remove [Cola|Cups] brand <quantity>
         // Add|Remove [Coins|Bills] <denomination> <quantity>
 
         input = stringLower(input);
-        string item = input.substr(input.find(' ') + 1, input.find(' '));
+        input.erase(0, input.find(' ') + 1);
 
-        // LOOK INTO THIS SOLUTION. substr(<starting position>, <number of characters to copy>)
-        // current solution does not work for the reasons it should, will fail edge cases
-        // String test = input.substr(input.find(' ') + 1, input.rfind(' ') - input.find(' '));
+        string args[MAX_ARGS] = {"", "", ""};
+        string temp = input;
+        size_t pos = 0;
+        int counter = 0;
+        
+        do {
+            pos = temp.find(' ');
+            args[counter] = temp.substr(0, pos);
+            temp.erase(0, pos + 1);
+            counter += 1;
+            pos = temp.find(' ');
+        }
+        while (pos != string::npos);
+        args[counter] = temp;
 
-        if (item == "cup") { // for the cups
-            string sQuantity = (input.substr(input.find(' ') + 1)).substr(input.find(' ') + 1);
-            int iQuantity = stoi(sQuantity);
-            inventory.add(iQuantity);
+    
+        if (args[0] == "cup" || args[0] == "cups") { // for the cups
+            string sQuantity = args[1];
+            
+            try {
+                int iQuantity = stoi(sQuantity);
+                inventory.add(iQuantity);
+                return;
+            }
+            catch (exception ex) {
+                cout << "Invalid quantity entered!" << endl;
+                return;
+            }
             
         }
-        if (item == "bill") {
+        if (args[0] == "cola" || args[0] == "colas") {
+            string brand = args[1];
+            string sQuantity = args[2];
+
+            try {
+                int iQuantity = stoi(sQuantity);
+                inventory.add(brand, iQuantity);
+                return;
+            }
+            catch (exception ex) {
+                cout << "Invalid quantity entered!" << endl;
+                return;
+            }
+        }
+
+        if (args[0] == "bill" || args[0] == "bills" || args[0] == "coin" || args[0] == "coins") {
+            
+            string sDenomination = args[1];
+            string sQuantity = args[2];
+            int iQuantity = 00;
+            int iDenomination = 00;
+
+            try {
+                iQuantity = stoi(sQuantity);
+            }
+            catch (exception ex) {
+                cout << "Invalid quantity entered!" << endl;
+                return;
+            }
+            try {
+                iDenomination = stoi(sDenomination);
+                till.add(args[0], iDenomination, iQuantity);
+            }
+            catch (exception ex) {
+                till.add(args[0], sDenomination, iQuantity);
+                return;
+            }
 
         }
 
-        /*
-        if (itemType == "cola") {
-            cout << "You need to enter a brand" << endl;
-            return;
-        }
         else {
-            cout << "Invalid item type entered" << endl;
+            cout << "Invalid use of the add command, please try again." << endl;
             return;
-        } */
+        } 
     } 
 
     void remove(string input) {
+        if (this->serviceMode != true) {
+            cout << "You can only access this command from the service mode!" << endl;
+            return;
+        }
+
+        const int MAX_ARGS = 3;
+        // Add|Remove [Cola|Cups] brand <quantity>
+        // Add|Remove [Coins|Bills] <denomination> <quantity>
+
+        input = stringLower(input);
+        input.erase(0, input.find(' ') + 1);
+
+        string args[MAX_ARGS] = {"", "", ""};
+        string temp = input;
+        size_t pos = 0;
+        int counter = 0;
         
+        do {
+            pos = temp.find(' ');
+            args[counter] = temp.substr(0, pos);
+            temp.erase(0, pos + 1);
+            counter += 1;
+            pos = temp.find(' ');
+        }
+        while (pos != string::npos);
+        args[counter] = temp;
+
+    
+        if (args[0] == "cup" || args[0] == "cups") { // for the cups
+            string sQuantity = args[1];
+            
+            try {
+                int iQuantity = stoi(sQuantity);
+                inventory.remove(iQuantity);
+                return;
+            }
+            catch (exception ex) {
+                cout << "Invalid quantity entered!" << endl;
+                return;
+            }
+            
+        }
+        if (args[0] == "cola" || args[0] == "colas") {
+            string brand = args[1];
+            string sQuantity = args[2];
+
+            try {
+                int iQuantity = stoi(sQuantity);
+                inventory.remove(brand, iQuantity);
+                return;
+            }
+            catch (exception ex) {
+                cout << "Invalid quantity entered!" << endl;
+                return;
+            }
+        }
+
+        if (args[0] == "bill" || args[0] == "bills" || args[0] == "coin" || args[0] == "coins") {
+            
+            string sDenomination = args[1];
+            string sQuantity = args[2];
+            int iQuantity = 0;
+            int iDenomination = 0;
+
+            try {
+                iQuantity = stoi(sQuantity);
+            }
+            catch (exception ex) {
+                cout << "Invalid quantity entered!" << endl;
+                return;
+            }
+            try {
+                iDenomination = stoi(sDenomination);
+                till.remove(args[0], iDenomination, iQuantity);
+            }
+            catch (exception ex) {
+                till.remove(args[0], sDenomination, iQuantity);
+                return;
+            }
+
+        }
+
+        else {
+            cout << "Invalid use of the remove command, please try again." << endl;
+            return;
+        }         
     }
 
     // normal mode
@@ -781,10 +904,10 @@ public:
             return;
         }
         if (command == "lock") {
-            this->lock(input.substr(input.find(' ') + 1, input.size()));
-            return;
-        }
-        if (command == "lock") {
+            if (this->serviceMode == false) {
+                cout << "The machine is already locked" << endl;
+                return;
+            }
             this->lock(input.substr(input.find(' ') + 1, input.size()));
             return;
         }
@@ -794,13 +917,22 @@ public:
             return;
         }
 
+        if (command == "remove") {
+            this->remove(input);
+            return;
+        }
 
         // normal mode commands
         if (command == "unlock") {
+            if (this->serviceMode == true) {
+                cout << "The machine is already unlocked" << endl;
+                return;
+            }
             this->unlock(input.substr(input.find(' ') + 1, input.size())) ;
             return;
         }
 
+        
 
         else {
             cout << "That command was not recognized!" << endl << endl;

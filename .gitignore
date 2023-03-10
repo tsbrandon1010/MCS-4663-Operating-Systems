@@ -4,3 +4,5 @@
 project_vending_machine/.vscode/tasks.json
 project_vending_machine/main.exe
 project_vending_machine/.vscode/settings.json
+project_vending_machine/test.cpp
+project_vending_machine/test.exe
