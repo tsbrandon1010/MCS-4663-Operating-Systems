@@ -23,15 +23,15 @@
     * help - list commands
 
     -- Normal Mode
-    
-    * enter coin
-    * enter bill
-    * pick can
+
     DONE:
    
     * help - list commands
     * exit
     * unlock with password
+    * enter bill
+    * enter coin
+    * pick can
 
 
 */
@@ -57,7 +57,7 @@ public:
     string name;
     string printableName;
     int count;
-    float value;
+    int value;
 
     Currency() {
         this->name = "";
@@ -66,7 +66,7 @@ public:
         this->value = 0;
     }
     
-    void setValues(string pName, string pPrintableName , int pCount, float pValue) {
+    void setValues(string pName, string pPrintableName , int pCount, int pValue) {
         this->name = pName;
         this->printableName = pPrintableName;
         this->count = pCount;
@@ -79,7 +79,7 @@ class Item {
 public:
     string name;
     int count;
-    float price;
+    int price;
 
     Item() {
         this->name = "";
@@ -87,7 +87,7 @@ public:
         this-> price = 0;
     }
 
-    void setValues(string pName, int pCount, float pPrice) {
+    void setValues(string pName, int pCount, int pPrice) {
         this->name = pName;
         this->count = pCount;
         this->price = pPrice;
@@ -97,7 +97,7 @@ public:
 
 class VendingMachineTill {
 private:
-    float amountDeposited = 0;
+    int amountDeposited = 0;
     static const int TILL_SIZE = 5;
     
     Currency fiveDollar;
@@ -109,16 +109,16 @@ private:
 public:
 
     VendingMachineTill() {
-        fiveDollar.setValues("Five", "Five Dollar Bills", 2, 5.0);
-        dollar.setValues("One", "One Dollar Bills", 2, 1.0);
-        quarter.setValues("Quarter", "Quarters", 1, 0.25);
-        dime.setValues("Dime", "Dimes", 0, 0.10);
-        nickel.setValues("Nickel", "Nickels", 0, 0.05);
+        fiveDollar.setValues("Five", "Five Dollar Bills", 10, 500);
+        dollar.setValues("One", "One Dollar Bills", 0, 100);
+        quarter.setValues("Quarter", "Quarters", 0, 25);
+        dime.setValues("Dime", "Dimes", 1, 10);
+        nickel.setValues("Nickel", "Nickels", 2, 5);
         this->calculateAmountDeposited();
     }
 
     void calculateAmountDeposited() {
-        float count = 0;
+        int count = 0;
         for (int i = 0; i < TILL_SIZE; i++) {
             count += tender[i]->count * tender[i]->value;
         }
@@ -126,18 +126,95 @@ public:
         this->amountDeposited = count;
     }
 
-    float getAmountDeposited() {
+    int getAmountDeposited() {
         return this->amountDeposited;
     }
 
-    int dispenseChange(int changeNeeded) { // subtracts the proper denominations to return the change to the customer
+    void dispenseChange(int &changeNeeded) { // subtracts the proper denominations to return the change to the customer
         // subtract the largest possible denomination first
+        int largestDenomination;
+        int numDispensed;
+        int totalDispensed = 0;
+        // we need to ensure that there are enough of each coins/bills 
 
-        float largestDenomination;
 
-        largestDenomination = changeNeeded / 5;
+        largestDenomination = changeNeeded / 500; // 5 dollar bill
+        if (largestDenomination > this->tender[0]->count) { // if we dont have enough, we take that max that we possibly can and pass it to the next denomination
+            numDispensed = this->tender[0]->count;
+            this->tender[0]->count = 0; 
+            changeNeeded -= numDispensed * 500;
+        }
+        else {
+            numDispensed = largestDenomination;
+            this->tender[0]->count -= largestDenomination;
+            changeNeeded -= largestDenomination * 500;
+        }
+        totalDispensed += numDispensed * 500;
+        cout << "Fives: " << numDispensed << endl;
+        
+        largestDenomination = changeNeeded / 100; // 1 dollar bill
+        if (largestDenomination > this->tender[1]->count) { // if we dont have enough, we take that max that we possibly can and pass it to the next denomination
+            numDispensed = this->tender[1]->count;
+            this->tender[1]->count = 0; 
+            changeNeeded -= numDispensed * 100;
+        }
+        else {
+            numDispensed = largestDenomination;
+            this->tender[1]->count -= largestDenomination;
+            changeNeeded -= largestDenomination * 100;
+        }
+        totalDispensed += numDispensed * 100;
+        cout << "Ones: " << numDispensed << endl;
 
-        changeNeeded;
+        largestDenomination = changeNeeded / 25; // 25 cent coin
+        if (largestDenomination > this->tender[2]->count) { // if we dont have enough, we take that max that we possibly can and pass it to the next denomination
+            numDispensed = this->tender[2]->count;
+            this->tender[2]->count = 0; 
+            changeNeeded -= numDispensed * 25;
+        }
+        else {
+            numDispensed = largestDenomination;
+            this->tender[2]->count -= largestDenomination;
+            changeNeeded -= largestDenomination * 25;
+        }
+        totalDispensed += numDispensed * 25;
+        cout << "Quarters: " << numDispensed << endl;
+
+        largestDenomination = changeNeeded / 10; // 10 cent coin
+        if (largestDenomination > this->tender[3]->count) { // if we dont have enough, we take that max that we possibly can and pass it to the next denomination
+            numDispensed = this->tender[3]->count;
+            this->tender[3]->count = 0; 
+            changeNeeded -= numDispensed * 10;
+        }
+        else {
+            numDispensed = largestDenomination;
+            this->tender[3]->count -= largestDenomination;
+            changeNeeded -= largestDenomination * 10;
+        }
+        totalDispensed += numDispensed * 10;
+        cout << "Dimes: " << numDispensed << endl;
+
+        largestDenomination = changeNeeded / 5; // 5 cent coin
+        if (largestDenomination > this->tender[4]->count) { // if we dont have enough, we take that max that we possibly can and pass it to the next denomination
+            numDispensed = this->tender[4]->count;
+            this->tender[4]->count = 0; 
+            changeNeeded -= numDispensed * 5;
+        }
+        else {
+            numDispensed = largestDenomination;
+            this->tender[4]->count -= largestDenomination;
+            changeNeeded -= largestDenomination * 5;
+        }
+        totalDispensed += numDispensed * 5;
+        cout << "Nickels: " << numDispensed << endl;
+    
+        cout << "$"<< (long double)totalDispensed / 100 << " was dispensed." << endl << endl;
+
+        if (changeNeeded != totalDispensed) { // then we did not have enough money in the machine to make change
+            cout << "The vending machine is unable to return all change, please contact an attendent." << endl;
+            cout << "$" << (long double) changeNeeded  / 100 << " remains in the machine." << endl;
+        }
+
     }
 
     void updateTill(int denominationIndex, int quantity) {
@@ -147,7 +224,7 @@ public:
 
     void printTill() {
         this->calculateAmountDeposited();
-        cout << "Amount Deposited = " << amountDeposited << endl;
+        cout << "Amount Deposited = " << (long double)amountDeposited / 100 << endl;
         for (int i = 0; i < 5; i++) {
             cout << "total " << this->tender[i]->printableName << " = " << 
             tender[i]->count << endl;
@@ -354,7 +431,7 @@ public:
 class VendingMachineInventory {
 public:
 
-    const float DRINK_COST = .75;
+    const int DRINK_COST = 75;
     static const int INVENTORY_SIZE = 6;
     Item coke;
     Item pepsi;
@@ -366,14 +443,14 @@ public:
     Item* inventory[INVENTORY_SIZE] = {&coke, &pepsi, &RC, &jolt, &faygo, &cup}; 
 
     VendingMachineInventory() {
-        coke.setValues("Coke", 0, DRINK_COST);
-        pepsi.setValues("Pepsi", 0, DRINK_COST);
-        RC.setValues("RC", 0, DRINK_COST);
-        jolt.setValues("Jolt", 0, DRINK_COST);
-        faygo.setValues("Faygo", 0, DRINK_COST);
+        coke.setValues("Coke", 10, DRINK_COST);  // name, quantity, cost
+        pepsi.setValues("Pepsi", 10, DRINK_COST);
+        RC.setValues("RC", 10, DRINK_COST);
+        jolt.setValues("Jolt", 10, DRINK_COST);
+        faygo.setValues("Faygo", 10, DRINK_COST);
         
         // cups are free
-        cup.setValues("Cups", 0, 0);
+        cup.setValues("Cups", 10, 0);
     }
     
     void printInventory() {
@@ -430,26 +507,16 @@ public:
     }
 
     // only works for the cups
-    void add(string itemType, int quantity) {
+    void add(int quantity) {
         if (quantity < 0) {
             cout << "Cannot add a number less than zero" << endl;
             return;
         }
         
-        itemType = stringLower(itemType);
-        if (itemType == "cups" || itemType == "cup") {
-            this->inventory[5]->count += quantity;
-            printCount(5);
-            return;
-        }
-        if (itemType == "cola") {
-            cout << "You need to enter a brand" << endl;
-            return;
-        }
-        else {
-            cout << "Invalid item type entered" << endl;
-            return;
-        }
+        this->inventory[5]->count += quantity;
+        printCount(5);
+        return;
+    
     }
 
 
@@ -479,53 +546,39 @@ public:
     }
 
     // only works for the cups
-    void remove(string itemType, int quantity) {
+    void remove(int quantity) {
         if (quantity < 0) {
             cout << "Cannot remove a number less than zero" << endl;
             return;
         }
-        
-        itemType = stringLower(itemType);
-        if (itemType == "cups" || itemType == "cup") {
-            
-            if (this->inventory[5]->count <= quantity) { this->inventory[5]->count = 0; }
-            else { this->inventory[5]->count -= quantity; }
-            printCount(5);
-            return;
-        }
-        if (itemType == "cola") {
-            cout << "You need to enter a brand" << endl;
-            return;
-        }
-        else {
-            cout << "Invalid item type entered" << endl;
-            return;
-        }
+
+        if (this->inventory[5]->count <= quantity) { this->inventory[5]->count = 0; }
+        else { this->inventory[5]->count -= quantity; }
+        printCount(5);
+        return;
     }
 
 };
 
 class VendingMachine {
 private:
-    const float DRINK_COST = .75;
+    const int DRINK_COST = 75;
     
     bool serviceMode = true; // true = it is in service mode
     bool runningStatus = true;
     string password = "amongus"; // hard-coded password
-    float currentBalance = 0;
+    int currentBalance = 100;
 public:        
     
     
     VendingMachineInventory inventory;    
     VendingMachineTill till;
-
-    void setServiceMode(bool isServiceMode) {
-        this->serviceMode = isServiceMode;
-    }
-    bool getServiceMode() {
-        return this->serviceMode;
-    }
     
+    string getCommand(string input) {
+        return input.substr(0, input.find(' '));
+    }
+
+
     void exit() {
         runningStatus = false;
     }
@@ -560,48 +613,82 @@ public:
             this->serviceMode = false;
         }
         else {
-            cout << "Incorrect password was entered" << endl;
+            cout << "Incorrect password was entered" << endl << endl;
         }
     }
 
-    void add() { // the vending machine has to call the correct corresponding add function (from the till or the inventory)
+    void add(string input) { // the vending machine has to call the correct corresponding add function (from the till or the inventory)
         if (this->serviceMode != true) {
             cout << "You can only access this command from the service mode!" << endl;
             return;
         }
+
+        // Add|Remove [Cola|Cups] brand <quantity>
+        // Add|Remove [Coins|Bills] <denomination> <quantity>
+
+        input = stringLower(input);
+        string item = input.substr(input.find(' ') + 1, input.find(' '));
+
+        // LOOK INTO THIS SOLUTION. substr(<starting position>, <number of characters to copy>)
+        // current solution does not work for the reasons it should, will fail edge cases
+        // String test = input.substr(input.find(' ') + 1, input.rfind(' ') - input.find(' '));
+
+        if (item == "cup") { // for the cups
+            string sQuantity = (input.substr(input.find(' ') + 1)).substr(input.find(' ') + 1);
+            int iQuantity = stoi(sQuantity);
+            inventory.add(iQuantity);
+            
+        }
+        if (item == "bill") {
+
+        }
+
+        /*
+        if (itemType == "cola") {
+            cout << "You need to enter a brand" << endl;
+            return;
+        }
+        else {
+            cout << "Invalid item type entered" << endl;
+            return;
+        } */
     } 
+
+    void remove(string input) {
+        
+    }
 
     // normal mode
     void coin(int value) {
         if (value == 5) {
-            this->currentBalance += 0.05;
+            this->currentBalance += 5;
             this->till.updateTill(4, 1);
         }
         if (value == 10) {
-            this->currentBalance += 0.10;
+            this->currentBalance += 10;
             this->till.updateTill(3, 1);
         }
         if (value == 25) {
-            this->currentBalance += 0.25;
+            this->currentBalance += 25;
             this->till.updateTill(2, 1);
         }
         else {
-            cout << "An invalid denomination entered" << endl;
+            cout << "An invalid denomination was entered" << endl;
         }
     }
     
     void coin(string value) {
         value = stringLower(value);
         if (value == "nickel" || value == "nickels") {
-            this->currentBalance += 0.05;
+            this->currentBalance += 5;
             this->till.updateTill(4, 1);
         }
         if (value == "dime" || value == "dimes") {
-            this->currentBalance += 0.10;
+            this->currentBalance += 10;
             this->till.updateTill(3, 1);
         }
         if (value == "quarter" || value == "quarters") {
-            this->currentBalance += 0.25;
+            this->currentBalance += 25;
             this->till.updateTill(2, 1);
         }
         else {
@@ -611,11 +698,11 @@ public:
 
     void bill(int value) {
         if (value == 1) {
-            this->currentBalance += 1;
+            this->currentBalance += 100;
             this->till.updateTill(1, 1);
         }
         if (value == 5) {
-            this->currentBalance += 5;
+            this->currentBalance += 500;
             this->till.updateTill(0, 1);
         }
         else {
@@ -623,11 +710,7 @@ public:
         }
     }
 
-    void cola(string value) { // where value is the brand of cola
-        // * we have to check to make sure we have enough cans and cups before dispensing 
-        // * have to make sure that there is enough money to dispense a can (if not we prompt the user to enter more)
-        // * when the item is dispensed we have to deduct the item from the inventory
-        // if there is leftover money it should be returned to the user
+    void cola(string value) {
         int itemIndex = this->inventory.findItem(value);
         value = stringLower(value);
 
@@ -639,9 +722,12 @@ public:
             cout << "This item is out of stock!" << endl;
             return;
         }
+        
         if (this->inventory.inventory[5]->count == 0) { // the cups are at index 5
             cout << "We are out of cups. We are unable to fulfill your order" << endl;
-            // need to give the customer back their money
+            
+            this->till.dispenseChange(currentBalance);
+            
             return;
         } 
         if (this->currentBalance < this->DRINK_COST) { // checking to see if the customer has entered enough money
@@ -653,9 +739,14 @@ public:
         this->inventory.inventory[itemIndex] -= 1; // remove the desired brand
         this->inventory.inventory[5] -= 1; // remove a cup
         this->currentBalance -= this->DRINK_COST;
-        cout << this->inventory.inventory[itemIndex]->name << " dispensed!" << endl << "Dispensing change..." << endl;
-
-        // need a function to dispense change
+        cout << this->inventory.inventory[itemIndex]->name << " dispensed!" << endl << endl;
+        
+        if (currentBalance > 0) {
+            this->till.dispenseChange(currentBalance);
+        }
+        else {
+            cout << "There was no change to dispense, have a nice day!" << endl;
+        }
 
     }
 
@@ -664,22 +755,81 @@ public:
             this->serviceMode = true;
         }
         else {
-            cout << "Incorrect password was entered" << endl;
+            cout << "Incorrect password was entered" << endl << endl;
         }    
+    }
+
+    void cli(string input) {
+        input = stringLower(input); // this is not secure because it means that our password can only be lowercase, but that is fine for this application
+        // "common" commands
+        
+        string command = getCommand(input);
+        
+        if (input == "exit") {
+            this->exit();
+            return;
+        }
+        if (input == "help") {
+            this->help();
+            return;
+        }
+
+        // service mode commands
+        if (input == "status") {
+            if (this->serviceMode == true) { this->status(); }
+            else { cout << "You do not have the permissions to do this!" << endl; }
+            return;
+        }
+        if (command == "lock") {
+            this->lock(input.substr(input.find(' ') + 1, input.size()));
+            return;
+        }
+        if (command == "lock") {
+            this->lock(input.substr(input.find(' ') + 1, input.size()));
+            return;
+        }
+        
+        if (command == "add") {
+            this->add(input);
+            return;
+        }
+
+
+        // normal mode commands
+        if (command == "unlock") {
+            this->unlock(input.substr(input.find(' ') + 1, input.size())) ;
+            return;
+        }
+
+
+        else {
+            cout << "That command was not recognized!" << endl << endl;
+        }
+    }
+
+    void run() { // the running mode of the vending machine
+        string userInput = "";
+        
+        while(this->runningStatus == true) {
+            if (this->serviceMode == true) {
+                cout << "[SERVICE MODE]>";
+            }
+            else {
+                cout << "[NORMAL MODE]>";
+            }
+            getline(cin, userInput);
+            this->cli(userInput);
+        }
     }
 
 };
 
 int main() {
 
+
     VendingMachine ven;
 
-    ven.help();
-    
-    ven.setServiceMode(false);
-    
-    ven.help();
-
+    ven.run();
     
 
     system("pause");
