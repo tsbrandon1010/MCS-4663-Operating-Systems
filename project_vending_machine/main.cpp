@@ -1,4 +1,5 @@
 #include <iostream>
+#include <iomanip>
 #include <string>
 /*
 
@@ -210,7 +211,7 @@ public:
     
         cout << "$"<< (long double)totalDispensed / 100 << " was dispensed." << endl << endl;
 
-        if (changeNeeded != totalDispensed) { // then we did not have enough money in the machine to make change
+        if (changeNeeded != 0) { // then we did not have enough money in the machine to make change
             cout << "The vending machine is unable to return all change, please contact an attendent." << endl;
             cout << "$" << (long double) changeNeeded  / 100 << " remains in the machine." << endl;
         }
@@ -549,8 +550,8 @@ public:
 class VendingMachine {
 private:
     const int DRINK_COST = 75;
-    
-    bool serviceMode = true; // true = it is in service mode
+    static const int MAX_ARGS = 3;
+    bool serviceMode = false; // true = it is in service mode
     bool runningStatus = true;
     string password = "amongus"; // hard-coded password
     int currentBalance = 100;
@@ -560,6 +561,8 @@ public:
     VendingMachineInventory inventory;    
     VendingMachineTill till;
     
+    string args[MAX_ARGS] = {"", "", ""};
+
     string getCommand(string input) {
         return input.substr(0, input.find(' '));
     }
@@ -569,6 +572,32 @@ public:
         runningStatus = false;
     }
     
+    void argParse(string input) {
+        
+        // want to clear out the arguments everytime just in case
+        args[0] = ""; args[1] = ""; args[2] = "";
+
+
+        input = stringLower(input);
+        input.erase(0, input.find(' ') + 1);
+
+        string temp = input;
+        size_t pos = 0;
+        int counter = 0;
+        
+        do {
+            pos = temp.find(' ');
+            args[counter] = temp.substr(0, pos);
+            temp.erase(0, pos + 1);
+            counter += 1;
+            pos = temp.find(' ');
+        }
+        while (pos != string::npos);
+        args[counter] = temp;
+    
+
+    }
+
     void help() {
         if (this->serviceMode == true) {
             cout << endl << "Commands in Service Mode are:" << endl <<
@@ -604,33 +633,10 @@ public:
     }
 
     void add(string input) { // the vending machine has to call the correct corresponding add function (from the till or the inventory)
-        if (this->serviceMode != true) {
-            cout << "You can only access this command from the service mode!" << endl;
-            return;
-        }
 
-        const int MAX_ARGS = 3;
         // Add|Remove [Cola|Cups] brand <quantity>
         // Add|Remove [Coins|Bills] <denomination> <quantity>
-
-        input = stringLower(input);
-        input.erase(0, input.find(' ') + 1);
-
-        string args[MAX_ARGS] = {"", "", ""};
-        string temp = input;
-        size_t pos = 0;
-        int counter = 0;
-        
-        do {
-            pos = temp.find(' ');
-            args[counter] = temp.substr(0, pos);
-            temp.erase(0, pos + 1);
-            counter += 1;
-            pos = temp.find(' ');
-        }
-        while (pos != string::npos);
-        args[counter] = temp;
-
+        this->argParse(input);
     
         if (args[0] == "cup" || args[0] == "cups") { // for the cups
             string sQuantity = args[1];
@@ -693,32 +699,11 @@ public:
     } 
 
     void remove(string input) {
-        if (this->serviceMode != true) {
-            cout << "You can only access this command from the service mode!" << endl;
-            return;
-        }
-
         const int MAX_ARGS = 3;
         // Add|Remove [Cola|Cups] brand <quantity>
         // Add|Remove [Coins|Bills] <denomination> <quantity>
 
-        input = stringLower(input);
-        input.erase(0, input.find(' ') + 1);
-
-        string args[MAX_ARGS] = {"", "", ""};
-        string temp = input;
-        size_t pos = 0;
-        int counter = 0;
-        
-        do {
-            pos = temp.find(' ');
-            args[counter] = temp.substr(0, pos);
-            temp.erase(0, pos + 1);
-            counter += 1;
-            pos = temp.find(' ');
-        }
-        while (pos != string::npos);
-        args[counter] = temp;
+        this->argParse(input);
 
     
         if (args[0] == "cup" || args[0] == "cups") { // for the cups
@@ -781,23 +766,28 @@ public:
         }         
     }
 
+    void displayBalance() {
+        cout << "$" << fixed << setprecision(2) << ((long double)currentBalance  / 100) << " is currently in the machine" << endl << endl;
+    }
+
     // normal mode
     void coin(int value) {
         if (value == 5) {
             this->currentBalance += 5;
             this->till.updateTill(4, 1);
         }
-        if (value == 10) {
+        else if (value == 10) {
             this->currentBalance += 10;
             this->till.updateTill(3, 1);
         }
-        if (value == 25) {
+        else if (value == 25) {
             this->currentBalance += 25;
             this->till.updateTill(2, 1);
         }
         else {
             cout << "An invalid denomination was entered" << endl;
         }
+        displayBalance();
     }
     
     void coin(string value) {
@@ -806,17 +796,18 @@ public:
             this->currentBalance += 5;
             this->till.updateTill(4, 1);
         }
-        if (value == "dime" || value == "dimes") {
+        else if (value == "dime" || value == "dimes") {
             this->currentBalance += 10;
             this->till.updateTill(3, 1);
         }
-        if (value == "quarter" || value == "quarters") {
+        else if (value == "quarter" || value == "quarters") {
             this->currentBalance += 25;
             this->till.updateTill(2, 1);
         }
         else {
             cout << "An invalid denomination entered" << endl;
         }
+        displayBalance();
     }
 
     void bill(int value) {
@@ -824,13 +815,30 @@ public:
             this->currentBalance += 100;
             this->till.updateTill(1, 1);
         }
-        if (value == 5) {
+        else if (value == 5) {
             this->currentBalance += 500;
             this->till.updateTill(0, 1);
         }
         else {
             cout << "An invalid denomination entered" << endl;
         }
+        displayBalance();
+    }
+
+    void bill(string value) {
+        value = stringLower(value);
+        if (value == "one") {
+            this->currentBalance += 100;
+            this->till.updateTill(1, 1);
+        }
+        else if (value == "five") {
+            this->currentBalance += 500;
+            this->till.updateTill(0, 1);
+        }
+        else {
+            cout << "An invalid denomination entered" << endl;
+        }
+        displayBalance();
     }
 
     void cola(string value) {
@@ -858,9 +866,8 @@ public:
             return;
         }
 
-
-        this->inventory.inventory[itemIndex] -= 1; // remove the desired brand
-        this->inventory.inventory[5] -= 1; // remove a cup
+        this->inventory.inventory[itemIndex]->count -= 1; // remove the desired brand
+        this->inventory.inventory[5]->count -= 1; // remove a cup
         this->currentBalance -= this->DRINK_COST;
         cout << this->inventory.inventory[itemIndex]->name << " dispensed!" << endl << endl;
         
@@ -913,12 +920,14 @@ public:
         }
         
         if (command == "add") {
-            this->add(input);
+            if (this->serviceMode == true) { this->add(input); }
+            else { cout << "You do not have the permissions to do this!" << endl; }
             return;
         }
 
         if (command == "remove") {
-            this->remove(input);
+            if (this->serviceMode == true) { this->remove(input); }
+            else { cout << "You do not have the permissions to do this!" << endl; }
             return;
         }
 
@@ -932,7 +941,45 @@ public:
             return;
         }
 
-        
+        if (command == "coin") {
+            if (this->serviceMode == true) { cout << "You must be in user mode to use this command" << endl; return;}
+            else {
+                argParse(input);
+                try { // first try with int, then try with string
+                    int denomination = stoi(args[0]);
+                    coin(denomination);
+                }
+                catch (exception ex) {
+                    coin(args[0]);
+                }
+                return;
+            }
+        }
+
+        if (command == "bill") {
+            if (this->serviceMode == true) { cout << "You must be in user mode to use this command" << endl; return;}
+            else {
+            argParse(input);
+            try {
+                int denomination = stoi(args[0]);
+                bill(denomination);
+            }
+            catch (exception ex) {
+                bill(args[0]);
+            }
+            
+            return;
+            }
+        }
+
+        if (command == "cola") {
+            if (this->serviceMode == true) { cout << "You must be in user mode to use this command" << endl; return;}
+            else {
+                argParse(input);
+                cola(args[0]);
+                return;
+            }
+        }
 
         else {
             cout << "That command was not recognized!" << endl << endl;
