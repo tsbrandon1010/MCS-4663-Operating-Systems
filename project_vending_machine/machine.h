@@ -15,10 +15,10 @@ class VendingMachine {
 private:
     const int DRINK_COST = 75;
     static const int MAX_ARGS = 4;
-    bool serviceMode = false; // true = it is in service mode
+    bool serviceMode = true; // true = it is in service mode
     bool runningStatus = true;
-    string password = "amongus"; // hard-coded password
-    int currentBalance = 100;
+    string password = "aMongus"; // hard-coded password
+    int currentBalance = 0;
 public:        
     
     
@@ -354,26 +354,9 @@ public:
     }
 
     void cli(string input) {
-        input = stringLower(input); // this is not secure because it means that our password can only be lowercase, but that is fine for this application
-        // "common" commands
         
-        string command = getCommand(input);
+        string command = stringLower(getCommand(input));
         
-        if (input == "exit") {
-            this->exit();
-            return;
-        }
-        if (input == "help") {
-            this->help();
-            return;
-        }
-
-        // service mode commands
-        if (input == "status") {
-            if (this->serviceMode == true) { this->status(); }
-            else { cout << "You do not have the permissions to do this!" << endl; }
-            return;
-        }
         if (command == "lock") {
             if (this->serviceMode == false) {
                 cout << "The machine is already locked" << endl;
@@ -382,7 +365,34 @@ public:
             this->lock(input.substr(input.find(' ') + 1, input.size()));
             return;
         }
-        
+
+        if (command == "unlock") {
+            if (this->serviceMode == true) {
+                cout << "The machine is already unlocked" << endl;
+                return;
+            }
+            this->unlock(input.substr(input.find(' ') + 1, input.size())) ;
+            return;
+        }
+
+        input = stringLower(input);
+
+        if (command == "exit") {
+            this->exit();
+            return;
+        }
+        if (command == "help") {
+            this->help();
+            return;
+        }
+
+        // service mode commands
+        if (command == "status") {
+            if (this->serviceMode == true) { this->status(); }
+            else { cout << "You do not have the permissions to do this!" << endl; }
+            return;
+        }
+
         if (command == "add") {
             if (this->serviceMode == true) { this->add(input); }
             else { cout << "You do not have the permissions to do this!" << endl; }
@@ -396,14 +406,6 @@ public:
         }
 
         // normal mode commands
-        if (command == "unlock") {
-            if (this->serviceMode == true) {
-                cout << "The machine is already unlocked" << endl;
-                return;
-            }
-            this->unlock(input.substr(input.find(' ') + 1, input.size())) ;
-            return;
-        }
 
         if (command == "coin") {
             if (this->serviceMode == true) { cout << "You must be in user mode to use this command" << endl; return;}
@@ -453,6 +455,9 @@ public:
     void run() { // the running mode of the vending machine
         string userInput = "";
         
+        cout << "Please Enter a command and its parameter" << endl
+        << "(Type Help for list of commands, EXIT to quit)" << endl;
+
         while(this->runningStatus == true) {
             if (this->serviceMode == true) {
                 cout << "[SERVICE MODE]>";

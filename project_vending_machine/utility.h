@@ -4,8 +4,6 @@
 
 using namespace std;
 
-
-#define SHAPE_CPP
 string stringUpper(string aString) {
     for (int i = 0; i < aString.size(); i++) {
         aString[i] = toupper(aString[i]);

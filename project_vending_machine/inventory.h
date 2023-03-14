@@ -124,7 +124,7 @@ public:
             return;
         }
         
-        this->inventory[itemIndex]->count += quantity;
+        this->inventory[itemIndex]->count -= quantity;
         printCount(itemIndex);
         return;
     }
